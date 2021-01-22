@@ -118,6 +118,15 @@ __pom_hierarchy()
     done
 }
 
+_compute_classes_cache()
+{
+	local folder class_cache
+	folder=$(pwd)
+	class_cache=${folder}/.classes.cache
+	find "${folder}" -name "*Test*.class" -exec basename {} \; | sed s/.class//g > ${class_cache}
+	echo "${class_cache}"
+}
+
 _mvn()
 {
     local cur prev
@@ -210,7 +219,10 @@ _mvn()
 
     local IFS=$'|\n'
 
-    if [[ ${cur} == -D* ]] ; then
+	if [[ ${prev} == -Dtest && ${cur} == =* ]] ; then
+	  mapfile -t COMPREPLY < "$(_compute_classes_cache)"
+
+    elif [[ ${cur} == -D* ]] ; then
       COMPREPLY=( $(compgen -S ' ' -W "${options}" -- ${cur}) )
 
     elif [[ ${prev} == -P ]] ; then
